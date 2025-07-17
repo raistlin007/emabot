@@ -1,0 +1,39 @@
+from live_data import fetch_live_data, write_to_json
+from macd_strategy import generate_signal
+from buy_logic import place_buy_order
+from sell_logic import place_sell_order
+from margin_trading import place_margin_order
+from plotting import plot_live_data
+
+def start_bot(settings):
+    """
+    Starts the bot using the settings received from the GUI.
+    """
+    print(f"Starting bot with settings: {settings}")
+    timeframe = settings["timeframe"]
+    ema_short = settings["ema_short"]
+    ema_long = settings["ema_long"]
+    indicators = settings["indicators"].split(", ")
+    leverage = settings["leverage"]
+
+    # Fetch live data
+    exchange = "kucoin"
+    pair = "BTC-USDT"
+    live_data = fetch_live_data(exchange, pair, timeframe)
+    write_to_json(live_data)
+
+    # Visualize live data
+    plot_live_data(live_data)
+
+    # Generate signals based on selected indicators
+    signal = generate_signal()
+
+    # Execute trade based on signal
+    if signal == "BUY":
+        place_buy_order(exchange, pair, 0.01, live_data[-1]["close"])
+    elif signal == "SELL":
+        place_sell_order(exchange, pair, 0.01, live_data[-1]["close"])
+
+    # Example of margin trading (if selected)
+    if "Margin" in indicators:
+        place_margin_order(exchange, pair, 0.01, live_data[-1]["close"], leverage)

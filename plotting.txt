@@ -1,0 +1,16 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+
+def plot_live_data(data):
+    """
+    Plots live price data with entry/exit points.
+    """
+    df = pd.DataFrame(data, columns=["time", "open", "high", "low", "close", "volume"])
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(df["time"], df["close"], label="Close Price")
+    plt.title("Live Price Data")
+    plt.xlabel("Time")
+    plt.ylabel("Price")
+    plt.legend()
+    plt.show()

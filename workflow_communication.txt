@@ -1,0 +1,12 @@
+Workflow and Communication
+-GUI Module:
+---Takes user input and sends settings to the Call Module.
+
+-Call Module:
+---Orchestrates live data fetching, plotting, signal generation, and order execution.
+
+-Modules:
+---Each module (live data, strategy, buy/sell, limit/margin) works independently, focusing on its task.
+
+-Live Plotting:
+----Updates data visualization in real-time, showing entries/exits.

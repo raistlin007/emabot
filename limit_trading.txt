@@ -1,0 +1,28 @@
+4. Limit Trading Module (limit_trading.py)
+Handles limit order placement.
+
+python
+Copy
+Edit
+import requests
+
+def place_limit_order(exchange, pair, quantity, price, side):
+    """
+    Places a limit order (buy/sell).
+    """
+    api_url = f"https://api.{exchange}.com/api/v3/order"
+    payload = {
+        "symbol": pair,
+        "side": side,
+        "type": "limit",
+        "quantity": quantity,
+        "price": price,
+    }
+
+    headers = {"Authorization": "Bearer YOUR_API_KEY_HERE"}
+    response = requests.post(api_url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Limit order failed: {response.text}")

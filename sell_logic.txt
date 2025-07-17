@@ -1,0 +1,34 @@
+import requests
+
+def place_sell_order(exchange, pair, quantity, price):
+    """
+    Place a sell order using the exchange API.
+    Communicates with `stop_loss.py` and `macd_strategy.py`.
+    """
+    if exchange == "kucoin":
+        api_url = "https://api.kucoin.com/api/v1/orders"
+    elif exchange == "binance":
+        api_url = "https://api.binance.com/api/v3/order"
+    else:
+        raise ValueError("Unsupported exchange!")
+
+    payload = {
+        "symbol": pair,
+        "side": "sell",
+        "type": "limit",
+        "quantity": quantity,
+        "price": price,
+    }
+
+    headers = {"Authorization": "Bearer YOUR_API_KEY_HERE"}
+    response = requests.post(api_url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Sell order failed: {response.text}")
+
+# Example usage
+if __name__ == "__main__":
+    place_sell_order("binance", "BTC-USDT", 0.01, 24000)
+    print("Sell order placed.")

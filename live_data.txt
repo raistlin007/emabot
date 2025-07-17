@@ -1,0 +1,41 @@
+1. Data Module: live_data.py
+This module fetches live data from APIs and writes it to data/live_data.json.
+
+
+import json
+import requests
+
+def fetch_live_data(exchange, pair):
+    """
+    Fetch live market data from the specified exchange.
+    Communicates with external APIs to fetch data.
+    """
+    url = None
+    if exchange == "kucoin":
+        url = f"https://api.kucoin.com/api/v1/market/candles?symbol={pair}&type=1min"
+    elif exchange == "binance":
+        url = f"https://api.binance.com/api/v3/klines?symbol={pair}&interval=1m"
+    else:
+        raise ValueError(f"Unsupported exchange: {exchange}")
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Error fetching data from {exchange}: {response.status_code}")
+
+def write_to_json(data, file_path="data/live_data.json"):
+    """
+    Write fetched live data to JSON.
+    Communicates with JSON storage used by strategy modules.
+    """
+    with open(file_path, "w") as file:
+        json.dump(data, file, indent=4)
+
+# Example usage
+if __name__ == "__main__":
+    pair = "BTC-USDT"
+    exchange = "kucoin"
+    live_data = fetch_live_data(exchange, pair)
+    write_to_json(live_data)
+    print("Live data fetched and written to JSON.")

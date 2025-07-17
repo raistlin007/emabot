@@ -1,0 +1,40 @@
+//@version=6
+indicator("15M EMA Crossover Signals with VWAP and Exits", overlay=true)
+
+// Exponential Moving Averages
+ema1 = ta.ema(close, 3)
+ema2 = ta.ema(close, 13)
+ema3 = ta.ema(close, 35)
+ema4 = ta.ema(close, 55)
+
+// VWAP
+vwap = ta.vwap(hlc3)
+
+// Plotting EMAs
+plot(ema1, title="EMA 3", color=color.blue)
+plot(ema2, title="EMA 13", color=color.red)
+plot(ema3, title="EMA 35", color=color.green)
+plot(ema4, title="EMA 55", color=color.purple)
+
+// Plotting VWAP
+plot(vwap, title="VWAP", color=color.orange)
+
+// Buy Signal: When shorter EMA crosses above longer EMA
+buySignal = (ta.crossover(ema1, ema2) or ta.crossover(ema1, ema3) or ta.crossover(ema1, ema4))
+sellSignal = (ta.crossunder(ema1, ema2) or ta.crossunder(ema1, ema3) or ta.crossunder(ema1, ema4))
+
+// Define Exit Conditions
+exitBuy = (close < ema2)  // Exit Buy: When price drops below EMA 13 (or another exit condition)
+exitSell = (close > ema2) // Exit Sell: When price rises above EMA 13 (or another exit condition)
+
+// Plotting Buy and Sell Signals
+plotshape(series=buySignal, title="Buy Signal", location=location.belowbar, color=color.green, style=shape.labelup, text="Buy")
+plotshape(series=sellSignal, title="Sell Signal", location=location.abovebar, color=color.red, style=shape.labeldown, text="Sell")
+
+// Plotting Exit Signals
+plotshape(series=exitBuy, title="Exit Buy", location=location.abovebar, color=color.yellow, style=shape.labeldown, text="Exit")
+plotshape(series=exitSell, title="Exit Sell", location=location.belowbar, color=color.yellow, style=shape.labelup, text="Exit")
+
+// Background Color for Signal Clarity
+bgcolor(buySignal ? color.new(color.green, 90) : na)
+bgcolor(sellSignal ? color.new(color.red, 90) : na)

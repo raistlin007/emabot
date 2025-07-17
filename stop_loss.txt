@@ -1,0 +1,13 @@
+def calculate_stop_loss(entry_price, risk_percentage):
+    """
+    Calculate the stop-loss price.
+    Communicates with `buy_logic.py` and `sell_logic.py` to enforce stop-loss.
+    """
+    return entry_price * (1 - risk_percentage / 100)
+
+# Example usage
+if __name__ == "__main__":
+    entry_price = 23000  # Example price
+    risk_percentage = 2  # Risk percentage
+    stop_loss_price = calculate_stop_loss(entry_price, risk_percentage)
+    print(f"Stop-loss price: {stop_loss_price}")

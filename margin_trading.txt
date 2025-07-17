@@ -1,0 +1,27 @@
+5. Margin Trading Module (margin_trading.py)
+Handles margin trades with leverage.
+
+python
+Copy
+Edit
+import requests
+
+def place_margin_order(exchange, pair, quantity, price, leverage):
+    """
+    Places a margin trade with leverage.
+    """
+    api_url = f"https://api.{exchange}.com/api/v3/margin/order"
+    payload = {
+        "symbol": pair,
+        "quantity": quantity,
+        "price": price,
+        "leverage": leverage,
+    }
+
+    headers = {"Authorization": "Bearer YOUR_API_KEY_HERE"}
+    response = requests.post(api_url, json=payload, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        raise Exception(f"Margin order failed: {response.text}")

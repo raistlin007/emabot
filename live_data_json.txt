@@ -1,0 +1,12 @@
+data/live_data.json
+
+{
+  "symbol": "BTC-USDT",
+  "timestamp": "2025-01-23T12:34:56Z",
+  "price": 23000.50,
+  "volume": 100.25,
+  "candles": [
+    {"time": "2025-01-23T12:30:00Z", "open": 22950, "high": 23050, "low": 22900, "close": 23000},
+    {"time": "2025-01-23T12:31:00Z", "open": 23000, "high": 23100, "low": 22950, "close": 23050}
+  ]
+}

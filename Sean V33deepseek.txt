@@ -1,0 +1,51 @@
+//@version=6
+strategy("Sean V33deepseek - Date-Controlled Strategy", overlay=true, default_qty_type=strategy.cash, default_qty_value=100)
+
+// === STRICT BACKTEST RANGE ===
+startDate = input.time(timestamp("2025-01-01"), "Start Date")
+endDate = input.time(timestamp("2025-12-31"), "End Date")
+inDateRange = time >= startDate and time <= endDate
+
+// === STRATEGY INPUTS ===
+emaLength = input.int(2, "EMA Length")
+threshold = input.float(5.8, "Delta Threshold (Ticks)", step=0.1)
+limitOffset = input.float(-1.9, "Limit Offset (%)", step=0.1)
+
+// === CORE LOGIC ===
+ema = ta.ema(close, emaLength)
+delta = ema - ema[1]
+tickVal = threshold * syminfo.mintick
+limitPrice = close * (1 - limitOffset/100)
+
+// === SIGNAL CONDITIONS ===
+buySignal = delta > tickVal and delta[1] <= tickVal and strategy.position_size == 0 and inDateRange
+exitSignal = delta < -tickVal and strategy.position_size > 0 and inDateRange
+
+// === VISUAL PLOTS ===
+plotshape(buySignal, title="Buy Signal", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(exitSignal, title="Exit Signal", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
+// === CORRECTED TRADEADAPTER ALERT MESSAGE ===
+alertMessage = 
+'{' +
+'"exchange": "binance",' +
+'"ticker": "{{ticker}}",' +
+'"action": "{{strategy.order.action}}",' +
+'"type": "{{strategy.order.action == ''buy'' ? ''limit'' : ''market''}}",' +
+'"price": "{{strategy.order.action == ''buy'' ? strategy.order.price : close}}",' +
+'"size": "{{strategy.order.action == ''buy'' ? strategy.order.contracts : strategy.position_size}}",' +
+'"reduce_only": "{{strategy.order.action == ''sell'' ? ''true'' : ''false''}}",' +
+'"timestamp": "{{timenow}}",' +
+'"backtest_range_active": "' + str.tostring(inDateRange) + '"' +
+'}'
+
+// === STRATEGY EXECUTION ===
+if buySignal
+    strategy.entry("Long", strategy.long, limit=limitPrice)
+    
+if exitSignal
+    strategy.close("Long")
+
+// === ALERT TRIGGER ===
+if (buySignal or exitSignal) and inDateRange
+    alert(alertMessage, alert.freq_all)

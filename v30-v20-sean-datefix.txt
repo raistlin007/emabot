@@ -1,0 +1,40 @@
+//@version=6
+strategy("Sean V30-v20 - Buy Only (Fixed)", overlay=true, default_qty_type=strategy.cash, default_qty_value=100)
+
+// === BACKTEST RANGE ===
+isWithinDateRange(timeValue) =>
+    timeValue >= input.time(timestamp("2025-06-24 00:00"), "Start Date") and timeValue <= input.time(timestamp("2025-07-27 23:59"), "End Date")
+
+inWindow = isWithinDateRange(time)
+// === INPUTS ===
+emaLength = input.int(2, "EMA Length")
+threshold = input.float(5.8, "Delta Threshold (Ticks)", step=0.1)
+limitOffset = input.float(-1.9, "Limit Offset (%)", step=0.1)
+
+// === LOGIC ===
+ema = ta.ema(close, emaLength)
+delta = ema - ema[1]
+tickVal = threshold * syminfo.mintick
+
+// === CONDITIONS ===
+buySignal = delta > tickVal and delta[1] <= tickVal and strategy.position_size == 0
+exitSignal = delta < -tickVal and strategy.position_size > 0
+
+// === DYNAMIC ALERT MESSAGE ===
+alertMessage = 
+     buySignal ? 
+     '{"exchange":"binance","ticker":"{{ticker}}","action":"buy","type":"limit","price":"' + str.tostring(close * (1 - limitOffset/100)) + '","size":"{{strategy.order.contracts}}","reduce_only":false}' :
+     exitSignal ?
+     '{"exchange":"binance","ticker":"{{ticker}}","action":"sell","type":"market","size":"{{strategy.position_size}}","reduce_only":true}' :
+     na
+
+// === ALERT TRIGGER ===
+if buySignal or exitSignal
+    alert(alertMessage, alert.freq_once_per_bar_close)
+
+// === STRATEGY EXECUTION ===
+if buySignal and inWindow
+    strategy.entry("Long", strategy.long, limit=close * (1 - limitOffset/100))
+
+if exitSignal and inWindow
+    strategy.close("Long")

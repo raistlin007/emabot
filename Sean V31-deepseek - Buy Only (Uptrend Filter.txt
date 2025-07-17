@@ -1,0 +1,49 @@
+//@version=6
+strategy("Sean V31deepseek - Buy Only (Visual + TradeAdapter)", overlay=true, default_qty_type=strategy.cash, default_qty_value=100, commission_type=strategy.commission.percent, commission_value=0.075)
+
+// === INPUTS ===
+emaLength = input.int(2, "EMA Length", minval=1)
+threshold = input.float(5.8, "Delta Threshold (Ticks)", step=0.1)
+limitOffset = input.float(-1.9, "Limit Offset (%)", step=0.1, tooltip="Negative value = price below current market")
+
+// === CALCULATIONS ===
+ema = ta.ema(close, emaLength)
+delta = ema - ema[1]
+tickVal = threshold * syminfo.mintick
+limitPrice = close * (1 - limitOffset/100)
+
+// === CONDITIONS ===
+buySignal = delta > tickVal and delta[1] <= tickVal and strategy.position_size == 0
+exitSignal = delta < -tickVal and strategy.position_size > 0
+
+// === VISUAL SIGNALS ===
+plotshape(buySignal, title="Buy Signal", style=shape.triangleup, location=location.belowbar, color=color.new(color.green, 0), size=size.small)
+plotshape(exitSignal, title="Exit Signal", style=shape.triangledown, location=location.abovebar, color=color.new(color.red, 0), size=size.small)
+
+// === TRADEADAPTER ALERT MESSAGE ===
+alertMessage = 
+'{
+  "binance_api_key": "XXXX",
+  "binance_secret": "XXXX",
+  "real_order": "Yes",
+  "order_market": "Spot",
+  "exchange": "binance",
+  "ticker": "{{ticker}}",
+  "action": "{{strategy.order.action}}",
+  "type": "{{strategy.order.action == ''buy'' ? ''limit'' : ''market''}}",
+  "price": "{{strategy.order.action == ''buy'' ? strategy.order.price : close}}",
+  "size": "{{strategy.order.action == ''buy'' ? strategy.order.contracts : strategy.position_size}}",
+  "reduce_only": "{{strategy.order.action == ''sell'' ? ''true'' : ''false''}}",
+  "timestamp": "{{timenow}}"
+}'
+
+// === STRATEGY EXECUTION ===
+if buySignal
+    strategy.entry("Long", strategy.long, limit=limitPrice, comment="Buy Limit (" + str.tostring(limitOffset) + "%)")
+    
+if exitSignal
+    strategy.close("Long", comment="Market Exit")
+
+// === ALERT TRIGGER ===
+if buySignal or exitSignal
+    alert(alertMessage, alert.freq_all)  // Triggers immediately when conditions met
